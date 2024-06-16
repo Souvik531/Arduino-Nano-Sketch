@@ -1,0 +1,76 @@
+int ldr = 3;    //D3
+int ir = 2;     //D2
+int led =  6;   //D6 - PWM
+int swt = 5;    //D5  In Emergency Condition Light Full Glow
+
+bool isCarParked = true;
+bool isEmergency = false;
+
+int ldrRead;
+int irRead;
+int swtRead;
+
+void setup() {
+  // put your setup code here, to run once:
+  Serial.begin(9600);
+  pinMode(ldr, INPUT);
+  pinMode(ir, INPUT);
+  pinMode(led, OUTPUT);
+  pinMode(swt, INPUT_PULLUP);
+}
+
+void loop() {
+  // put your main code here, to run repeatedly:
+
+  swtRead = digitalRead(swt);
+
+  if(swtRead == LOW && isEmergency == false)
+  {
+     for(int i =0 ;i<=255; i++)
+      {
+        analogWrite(led, i);
+        delay(1);
+      }
+      isEmergency = true;
+  }
+  else if(isEmergency == false)
+  {
+    ldrRead = digitalRead(ldr);
+    irRead = digitalRead(ir);
+    if(ldrRead == 0)
+    {
+      analogWrite(led, 0); 
+      isCarParked = true;
+    }
+    else if(ldrRead == 1)
+    {
+      if(irRead == 1 && isCarParked == true)
+      {
+        for(int i =0 ;i<=50; i++)
+        {
+          analogWrite(led, i);
+          delay(10);
+        }
+        
+        isCarParked = false;
+      }
+      else if(irRead == 0 && isCarParked == false)
+      {
+        for(int i =0 ;i<=255; i++)
+        {
+          analogWrite(led, i);
+          delay(1);
+        }
+        analogWrite(led, 255);
+        delay(3000);    // to check if car is parked or not
+        for(int i =255 ;i>50; i--)
+        {
+          analogWrite(led, i);
+          delay(10);
+        }
+        isCarParked = true;
+      }
+    }
+  }
+  delay(500);
+}
